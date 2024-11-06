@@ -1,5 +1,4 @@
-import time
-import threading
+import time, threading
 
 def task(i):
     for x in range(5):
