@@ -4,11 +4,16 @@ host= "localhost"
 
 def sock_main():
     client_socket = socket.socket()
+    print("Socket created")
     client_socket.connect((host, 8080))
-    client_socket.send(message.encode())
-    if message == "bye" or "arret":
-        client_socket.close()
+    print("Socket connected")
+    while True:
+        message = str(input("Message: "))
+        client_socket.send(message.encode())
+        if message == "bye" or message == "arret":
+            client_socket.close()
+            print("Socket disconnected")
+            exit()
 
 if __name__ == "__main__":
-    message = str(input("Message: "))
     sock_main()

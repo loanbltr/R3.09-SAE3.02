@@ -1,15 +1,16 @@
 import time, threading
 
-def task(i):
+def threads(i):
     for x in range(5):
-        print(f'je suis le thread {i}')
+        print(f"Je suis la thread {i}")
         time.sleep(1)
 
-myThreads: list[threading.Thread] = []
-for i in range(1, 3):
-    t = threading.Thread(target=task, args=[i])
-    t.start()
-    myThreads.append(t)
+lThread = []
 
-for t in myThreads:
+for i in range(1, 3):
+    t = threading.Thread(target=threads, args=[i])
+    t.start()
+    lThread.append(t)
+
+for t in lThread:
     t.join()
