@@ -1,47 +1,38 @@
 import socket
-import threading
 import sys
+import threading
+
 host = "localhost"
-port = 8080
-reply = "serveur hello"
 message = ""
-quitted = False
 
-def recv(socket, conn):
-    global message, quitted
-    while (message != "q"):
+def rcv(s, conn):
+    global message
+    print("debug")
+    while True:
         message = conn.recv(1024).decode()
-        print("received message : " + message)
-    conn.close()
-    socket.close()
-    quitted = True
-    sys.exit(1)
-
-def main():
-    global message, quitted
-    server_socket = socket.socket()
-    server_socket.bind((host, port))
-    server_socket.listen(1)
-    conn, address = server_socket.accept()
-    receiver = threading.Thread(target=recv, args=[server_socket, conn])
-    receiver.daemon = True
-    receiver.start()
-    while (message != "q"):
-        if (not receiver.is_alive()):
+        if not message:
+            print("Client disconnected")
             break
-        try:
-            message = input("message : ")
-            conn.send(message.encode())
-        except:
-            if not quitted:
-                print("an error occured")
-            else:
-                print("Quitted")
-    if (not quitted):
-        print('Quited')
+        elif message == "arret":
+            print("Stopping communication")
+            break
+        print(f"MESSAGE DU CLIENT: {message}")
     conn.close()
-    server_socket.close()
-    exit()
+    s.close()
+    print("Socket closed")
+
+def sock_main():
+    global message
+    server_socket = socket.socket()
+    print("Socket created")
+    server_socket.bind((host, 8080))
+    print("Socket bind complete")
+    server_socket.listen(1)
+    print("Socket now listening")
+    conn, address = server_socket.accept()
+    print("Got connection from", address)
+    rMsg = threading.Thread(target=rcv, args=[server_socket, conn])
+    rMsg.start()
 
 if __name__ == "__main__":
-    main()
+    sock_main()

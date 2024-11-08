@@ -1,6 +1,7 @@
 import socket
 reply = "Reply from client"
 host= "localhost"
+name = "client2"
 
 def sock_main():
     client_socket = socket.socket()
@@ -9,8 +10,9 @@ def sock_main():
     print("Socket connected")
     while True:
         message = str(input("Message: "))
+        message += f"/{name}"
         client_socket.send(message.encode())
-        if message == "bye" or message == "arret":
+        if message.split("/")[0] == "bye" or message.split("/")[0] == "arret":
             client_socket.close()
             print("Socket disconnected")
             exit()
