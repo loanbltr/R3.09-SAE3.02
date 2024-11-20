@@ -16,10 +16,10 @@ def sock_main():
         print(f"MESSAGE DU CLIENT: {message}")
         if message == "arret":
             break
-        conn.close()
-        server_socket.close()
-        print("Socket closed")
-        sys.exit(1)
+            conn.close()
+            server_socket.close()
+            print("Socket closed")
+            sys.exit(1)
 
 if __name__ == "__main__":
     sock_main()
