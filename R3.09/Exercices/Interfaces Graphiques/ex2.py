@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtCore import QCoreApplication
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QLabel, QLineEdit, QComboBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QLabel, QLineEdit, QComboBox, QAction, QMessageBox
 
 
 class MainWindow(QMainWindow):
@@ -13,6 +13,18 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         grid = QGridLayout()
         widget.setLayout(grid)
+
+        menu_bar = self.menuBar()
+        window_menu = menu_bar.addMenu("Choisir la fenêtre")
+
+        # Ajouter les actions de menu pour afficher les fenêtres
+        ex1_action = QAction("Fenêtre EX1", self)
+        ex1_action.triggered.connect(self.show_ex1_window)
+        window_menu.addAction(ex1_action)
+
+        my_window_action = QAction("Fenêtre MyWindow", self)
+        my_window_action.triggered.connect(self.show_my_window)
+        window_menu.addAction(my_window_action)
 
         self.txttempdegre = QLabel("Température")
         self.degre = QLineEdit()
@@ -41,15 +53,23 @@ class MainWindow(QMainWindow):
         self.resize(500, 250)
 
     def actionBoutonConvert(self):
-        temperature = float(self.degre.text())
+        try:
+            temperature = float(self.degre.text())
+        except ValueError:
+            QMessageBox.warning(self, "Erreur", "Veuillez entrer une valeur numérique valide.")
+            return
+
         if self.choose.currentText() == "°C → K":
             if temperature < -273.15:
-                raise ValueError("La température ne peut pas être inférieure à -273.15 °C.")
+                QMessageBox.warning(self, "Erreur", "La température ne peut pas être inférieure à -273.15 °C.")
+                return
             converted = temperature + 273.15
         else:
             if temperature < 0:
-                raise ValueError("La température ne peut pas être inférieure à 0 K.")
+                QMessageBox.warning(self, "Erreur", "La température ne peut pas être inférieure à 0 K.")
+                return
             converted = temperature - 273.15
+
         self.kelvin.setText(f"{converted:.2f}")
 
     def update(self):
@@ -59,6 +79,13 @@ class MainWindow(QMainWindow):
         else:
             self.txtdegre.setText("K")
             self.txtkelvin.setText("°C")
+
+    def show_ex1_window(self):
+        QMessageBox.information(self, "Info", "Fenêtre EX1 - À implémenter")
+
+    def show_my_window(self):
+        QMessageBox.information(self, "Info", "Fenêtre MyWindow - À implémenter")
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
