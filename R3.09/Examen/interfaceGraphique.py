@@ -1,3 +1,5 @@
+#lien GitHub: https://github.com/loanbltr/R3.09-SAE3.02/tree/main/R3.09/Examen
+
 import sys, socket, threading
 from PyQt5.QtCore import QCoreApplication
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPushButton, QLabel, QLineEdit, QTextEdit
@@ -105,5 +107,5 @@ if __name__ == '__main__':
     sys.exit(app.exec())
 
 
-
+#Q1: Il faudra ajouter sur le client une déconexion du socket qu'il aura rejoint.
 #Q2: Afin de connecter plusieurs clients, il faudra les ajouter à une liste afin de pouvoir traiter l'ensemble des clients à l'aide d'une boucle.
