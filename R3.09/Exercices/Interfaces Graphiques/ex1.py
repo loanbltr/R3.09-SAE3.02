@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPu
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Une première fenêtre")  # Titre de la fenêtre
+        self.setWindowTitle("Une première fenêtre")
 
         # Créer un widget central et définir sa mise en page
         widget = QWidget()
@@ -23,8 +23,7 @@ class MainWindow(QMainWindow):
         self.ok.clicked.connect(self.actionOk)
         self.quit.clicked.connect(self.actionQuitter)
 
-        # Ajouter les widgets à la disposition
-        grid.addWidget(self.phrase, 0, 0)
+        # Ajouter les widgets à la dispositio        grid.addWidget(self.phrase, 0, 0)
         grid.addWidget(self.entrer, 1, 0)
         grid.addWidget(self.ok, 2, 0)
         grid.addWidget(self.bienvenue, 3, 0)

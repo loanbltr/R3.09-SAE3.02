@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QGridLayout, QPu
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Une première fenêtre")  # Titre de la fenêtre
+        self.setWindowTitle("Une première fenêtre")
 
         # Créer un widget central et définir sa mise en page
         widget = QWidget()
@@ -17,7 +17,6 @@ class MainWindow(QMainWindow):
         menu_bar = self.menuBar()
         window_menu = menu_bar.addMenu("Choisir la fenêtre")
 
-        # Ajouter les actions de menu pour afficher les fenêtres
         ex1_action = QAction("Fenêtre EX1", self)
         ex1_action.triggered.connect(self.show_ex1_window)
         window_menu.addAction(ex1_action)
@@ -40,7 +39,6 @@ class MainWindow(QMainWindow):
 
         self.boutonConvert.clicked.connect(self.actionBoutonConvert)
 
-        # Ajouter les widgets à la disposition
         grid.addWidget(self.txttempdegre, 0, 0)
         grid.addWidget(self.degre, 0, 1)
         grid.addWidget(self.txtdegre, 0, 2)

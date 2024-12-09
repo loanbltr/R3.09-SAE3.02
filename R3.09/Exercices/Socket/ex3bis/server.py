@@ -35,7 +35,6 @@ def handle_client(conn, address, server_socket):
 
 
 def close_all_connections():
-    """Ferme toutes les connexions clients et vide la liste des clients."""
     global clients
     for client in clients:
         try:
@@ -47,7 +46,6 @@ def close_all_connections():
 
 
 def broadcast(message, sender_conn=None):
-    """Envoie un message à tous les clients connectés sauf l'envoyeur (s'il est spécifié)."""
     for client in clients:
         if client != sender_conn:
             try:
@@ -58,7 +56,6 @@ def broadcast(message, sender_conn=None):
 
 
 def server_send():
-    """Permet au serveur d'envoyer un message à tous les clients connectés."""
     global server_running
     while server_running:
         message = input("Server message: ")
@@ -76,12 +73,9 @@ def sock_main():
     server_socket.bind((host, port))
     server_socket.listen()
     print(f"Server listening on {host}:{port}")
-
-    # Thread pour envoyer des messages du serveur vers les clients
     send_thread = threading.Thread(target=server_send)
     send_thread.start()
 
-    # Accepter les connexions et démarrer un thread pour chaque client
     while server_running:
         try:
             conn, address = server_socket.accept()
