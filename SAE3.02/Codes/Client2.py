@@ -7,7 +7,7 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Client Interface")
+        self.setWindowTitle("Socket Client Interface")
         self.resize(600, 400)
 
         layout = QVBoxLayout()
@@ -28,14 +28,15 @@ class MainWindow(QWidget):
 
         self.connectButton = QPushButton("Connect")
         layout.addWidget(self.connectButton)
-        self.connectButton.clicked.connect(self.connectMaster)
+        self.connectButton.clicked.connect(connectMaster)
 
+        # File Input and Select Button
         fileLayout = QHBoxLayout()
         self.fileInput = QLineEdit()
         self.fileInput.setPlaceholderText("No file selected")
         self.fileInput.setReadOnly(True)
         fileButton = QPushButton("Select File")
-        fileButton.clicked.connect(self.selectFile)
+        fileButton.clicked.connect(lambda: selectFile())
         fileLayout.addWidget(self.fileInput)
         fileLayout.addWidget(fileButton)
         layout.addLayout(fileLayout)
@@ -48,7 +49,7 @@ class MainWindow(QWidget):
 
         self.send_button = QPushButton("Send File")
         layout.addWidget(self.send_button)
-        self.send_button.clicked.connect(self.sendMaster)
+        self.send_button.clicked.connect(sendMaster)
 
         messagesLabel = QLabel("Messages Received:")
         self.messagesDisplay = QTextEdit()
@@ -58,50 +59,36 @@ class MainWindow(QWidget):
 
         self.setLayout(layout)
 
-    def selectFile(self):
-        options = QFileDialog.Options()
-        filePath, _ = QFileDialog.getOpenFileName(None, "Select file(s)", "", "Files (*.py)", options=options)
-        if filePath:
-            window.fileInput.setText(filePath)
-            with open(filePath, 'r') as file:
-                window.fileDisplay.setText(file.read())
+def selectFile():
+    options = QFileDialog.Options()
+    filePath, _ = QFileDialog.getOpenFileName(None, "Select file(s)", "", "Files (*.py)", options=options)
+    if filePath:
+        window.fileInput.setText(filePath)
+        with open(filePath, 'r') as file:
+            window.fileDisplay.setText(file.read())
 
-    def connectMaster(self):
-        global socketConnMaster, socketConnMasterConnected
-        if self.connectButton.text() == "Connect":
-            try:
-                ip = window.ipInput.text()
-                port = int(window.portInput.text())
-                socketConnMaster = socket.socket()
-                socketConnMaster.connect((ip, port))
-                socketConnMasterConnected = True
-                print(f"Connecting to {ip}:{port}")
-                self.connectButton.setText("Disconnect")
-            except Exception as e:
-                print(f"Error connecting to server master: {e}")
-        else:
-            self.disconnectMaster()
+def connectMaster():
+    global socketConnMaster, socketConnMasterConnected
+    try:
+        ip = window.ipInput.text()
+        port = int(window.portInput.text())
+        socketConnMaster = socket.socket()
+        socketConnMaster.connect((ip, port))
+        socketConnMasterConnected = True
+        print(f"Connecting to {ip}:{port}")
+    except Exception as e:
+        print(f"Error connecting to server master: {e}")
 
-    def sendMaster(self):
-        if not socketConnMasterConnected:
-            print("Not connected to server master.")
-            return
-        try:
-            message = window.fileInput.text()
-            socketConnMaster.send(fileToMsg(message).encode())
-            print(f"Message sent to server master: {message}")
-        except Exception as e:
-            print(f"Error sending command to server master: {e}")
-        
-    def disconnectMaster(self):
-        global socketConnMaster, socketConnMasterConnected
-        try:
-            socketConnMaster.close()
-            socketConnMasterConnected = False
-            print("Disconnected from server master.")
-            self.connectButton.setText("Connect")
-        except Exception as e:
-            print(f"Error disconnecting from server master: {e}")
+def sendMaster():
+    if not socketConnMasterConnected:
+        print("Not connected to server master.")
+        return
+    try:
+        message = window.fileInput.text()
+        socketConnMaster.send(fileToMsg(message).encode())
+        print(f"Message sent to server master: {message}")
+    except Exception as e:
+        print(f"Error sending command to server master: {e}")
 
 def fileToMsg(file_path):
     if os.path.exists(file_path):
@@ -110,6 +97,7 @@ def fileToMsg(file_path):
         return content
     else:
         return f"Le fichier '{file_path}' n'existe pas."
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
