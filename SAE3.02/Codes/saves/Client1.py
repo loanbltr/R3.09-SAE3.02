@@ -70,10 +70,8 @@ class MainWindow(QWidget):
         global socketConnMaster, socketConnMasterConnected
         if self.connectButton.text() == "Connect":
             try:
-                #ip = window.ipInput.text()
-                #port = int(window.portInput.text())
-                ip = "192.168.0.20"
-                port = 11111
+                ip = window.ipInput.text()
+                port = int(window.portInput.text())
                 socketConnMaster = socket.socket()
                 socketConnMaster.connect((ip, port))
                 socketConnMasterConnected = True
@@ -90,8 +88,7 @@ class MainWindow(QWidget):
             return
         try:
             message = window.fileInput.text()
-            message = f"code|{message.split('/')[-1]}|{fileToMsg(message)}"
-            socketConnMaster.send(message.encode())
+            socketConnMaster.send(fileToMsg(message).encode())
             print(f"Message sent to server master: {message}")
         except Exception as e:
             print(f"Error sending command to server master: {e}")

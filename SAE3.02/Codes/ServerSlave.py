@@ -1,105 +1,87 @@
-import sys, psutil, time
-import socket
-import subprocess
-import threading
+import sys, psutil, time, socket, subprocess, threading, random
+from io import StringIO
 
 class ServerSlave:
-    def __init__(self, ip, port):
-        self.ip = ip
-        self.port = port
+    def __init__(self, ipMaster):
+        self.ipMaster = ipMaster
+        self.socketMaster = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socketMaster.connect((self.ipMaster, 22222))
+        self.disponible = True
 
     def start(self):
-        threadSocket = threading.Thread(target=self.startSocket)
-        threadSocket.start()
-        threadSocketCpu = threading.Thread(target=self.startSocketCpu)
-        threadSocketCpu.start()
+        threading.Thread(target=self.receiveMaster).start()
+        threading.Thread(target=self.stateCpu).start()
+        #threading.Thread(target=self.sendMaster).start()
 
-    def startSocket(self):
-        self.slaveSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.slaveSocket.bind((self.ip, self.port))
-        self.slaveSocket.listen(1)
-        print(f"Serveur esclave démarré sur {self.ip}:{self.port}")
+    def receiveMaster(self):
         while True:
             try:
-                conn, address = self.slaveSocket.accept()
-                print(f"Connexion établie avec {address}")
+                data = self.socketMaster.recv(1024).decode("utf-8")
+                print(f"Received data from master: {data}")
+                result = self.traitementMessage(data)
+                result += f"code|{result}"
+                print(result)
+                self.sendMaster(result)
             except Exception as e:
-                print(f"Erreur avec {address}: {e}")
-                
-    def startSocketCpu(self):
-        self.slaveSocketCpu = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.slaveSocketCpu.bind((self.ip, 11111))
-        self.slaveSocketCpu.listen(1)
-        print(f"Serveur esclave démarré sur {self.ip}:11111")
-        while True:
-            try:
-                conn, address = self.slaveSocketCpu.accept()
-                print(f"Connexion établie avec {address}")
-                threadSendCpu = threading.Thread(target=self.sendCpu, args=(conn, address))
-                threadSendCpu.start()
-            except Exception as e:
-                print(f"Erreur avec {address}: {e}")
+                print(f"Error receiving data from master: {e}")
+                break
 
-    def sendCpu(self, conn, address):
+    def sendMaster(self, data):
         while True:
-            try:
-                conn.send(str(psutil.cpu_percent()).encode())
-                print(psutil.cpu_percent())
-                time.sleep(5)
-            except Exception as e:
-                print(f"Erreur avec {address}: {e}")
-
-    def traitementCode(self, conn, address):
-        try:
-            while self.running:
-                code = self.receive(conn)
-                #if not code:
-                    #print(f"Connexion terminée par le client {address}.")
-                    #break
-                while code is None:
-                    code = self.receive(conn)
-                print(f"Code reçu de {address}: {code}")
-                
+            if data == 'stateSlave':
                 try:
-                    # Sauvegarder le code reçu dans un fichier temporaire
-                    with open("temp_code.py", "w") as temp_file:
-                        temp_file.write(code)    
-                    
-                    # Exécuter le code en sous-processus
-                    result = subprocess.run(
-                        ["python3", "temp_code.py"],
-                        text=True,
-                        capture_output=True
-                    )
-                    if result.returncode == 0:
-                        output = result.stdout
-                    else:
-                        output = f"Erreur d'exécution:\n{result.stderr}"
-                    
-                    # Envoyer le résultat au client
-                    conn.send(output.encode())
-                
-                except Exception as exec_error:
-                    error_message = f"Erreur d'exécution: {exec_error}"
-                    conn.send(error_message.encode())
-                
-                print(f"Résultat envoyé à {address}: {output}")
+                    info = f'stateSlave|{self.disponible}'
+                    self.socketMaster.send(info.encode("utf-8"))
+                    print(f"Message sent to master: {info}")
+                    time.sleep(5)
+                except Exception as e:
+                    print(f"Error sending data to master: {e}")
+                    break
+            else:
+                try:
+                    info = f'code|{data}'
+                    self.socketMaster.send(info.encode("utf-8"))
+                    print(f"Message sent to master: {data}")
+                except Exception as e:
+                    print(f"Error sending data to master: {e}")
+                    break
+            
+    def stateCpu(self):
+        while True:
+            try:
+                if psutil.cpu_percent() > 80.0:
+                    self.disponible = False
+                else:
+                    self.disponible = True
+                self.sendMaster('stateSlave')
+            except Exception as e:
+                print(f"Error sending CPU usage to master: {e}")
+
+    def traitementMessage(self, data):
+        try:
+            if data.split("|")[1].split(".")[1] == "py":
+                nameTmp = data.split("|")[1].split(".")[0] + str(random.randint(0, 1000)) + ".py"
+                try:
+                    with open(f'fileTemp/{nameTmp}', "w", encoding='utf-8') as f:
+                        f.write(data.split("|")[1])
+                except:
+                    print("Erreur lors de l'écriture du fichier")
+                result = subprocess.run(['python', f'fileTemp/{nameTmp}'], capture_output=True, text=True)
+                return result.stdout.strip() if result.returncode == 0 else result.stderr.strip()
         except Exception as e:
-            print(f"Erreur avec {address}: {e}")
+            print(f"Error processing message: {e}")
 
     def stop(self):
-        self.running = False
-        if self.slaveSocket:
-            self.slaveSocket.close()
-        print("Serveur arrêté.")
+        self.socketMaster.close()
+        self.socketMasterCpu.close()
+        print("Server slave stopped.")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Utilisation : python ServerSlave.py <port>")
-        sys.exit(1)
+    #if len(sys.argv) != 2:
+        #print("Utilisation : python ServerSlave.py <ipMaster>")
+        #sys.exit(1)
 
-    ip = str(socket.gethostbyname(socket.gethostname()))
-    port = int(sys.argv[1])
+    #ipMaster = str(sys.argv[1])
 
-    serverSlave = ServerSlave(ip, port)
+    serverSlave = ServerSlave("192.168.0.20")
     serverSlave.start()
