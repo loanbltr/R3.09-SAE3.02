@@ -1,0 +1,3 @@
+Pour accéder à la documentations Sphinx:
+
+Sphinx\_build\html\index.html
